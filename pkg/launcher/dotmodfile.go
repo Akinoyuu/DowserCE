@@ -51,3 +51,25 @@ func GenerateDotModFile(path string) (string, error) {
 
 	return modName, nil
 }
+
+func DeleteDotModFiles(path string) error {
+	re := regexp.MustCompile(`.*\.mod`)
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		
+		fileName := entry.Name()
+		
+		if re.MatchString(fileName) {
+			os.Remove(filepath.Join(path, fileName))
+		}
+	}
+
+	return nil
+}

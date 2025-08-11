@@ -9,7 +9,7 @@ import (
 	"github.com/caarlos0/log"
 )
 
-const version = "v1.0.0"
+const version = "v1.0.1"
 
 func main() {
 	log.Infof("DowserCE 版本: %s", version)
@@ -19,6 +19,7 @@ func main() {
 		log.WithError(err).Fatal("获取Mod失败, 可能是因为权限不足")
 	}
 
+	launcher.DeleteDotModFiles(filepath.Join(launcher.DataDir, "mod"))
 	modNames := []string{}
 
 	for _, entry := range entries {
