@@ -12,20 +12,33 @@ import (
 
 var ErrNoNameFound = errors.New("没有找到Mod的名称")
 
+func GetDotModFileValue(path, key string) (string, error) {
+	byteData, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	re := regexp.MustCompile(fmt.Sprintf(`%s\s*=\s*"([^"]+)"`, key))
+	match := re.FindStringSubmatch(string(byteData))
+	if match == nil {
+		return "", ErrNoNameFound
+	}
+
+	return match[1], nil
+}
+
 func GenerateDotModFile(path string) (string, error) {
 	byteData, err := os.ReadFile(filepath.Join(path, "descriptor.mod"))
 	if err != nil {
 		return "", err
 	}
 
-	re := regexp.MustCompile(`name\s*=\s*"([^"]+)"`)
-	match := re.FindStringSubmatch(string(byteData))
-	if match == nil {
-		return "", ErrNoNameFound
+	modName, err := GetDotModFileValue(filepath.Join(path, "descriptor.mod"), "name")
+	if err != nil {
+		return "", err
 	}
 
-	modName := match[1]
-	re = regexp.MustCompile(`[<>:"/\|?*]+`)
+	re := regexp.MustCompile(`[<>:"/\|?*]+`)
 	changeName := re.ReplaceAllString(modName, "_")
 	dotModPath := filepath.Join(DataDir, "mod", fmt.Sprintf("%s.mod", changeName))
 
@@ -63,9 +76,9 @@ func DeleteDotModFiles(path string) error {
 		if entry.IsDir() {
 			continue
 		}
-		
+
 		fileName := entry.Name()
-		
+
 		if re.MatchString(fileName) {
 			os.Remove(filepath.Join(path, fileName))
 		}
