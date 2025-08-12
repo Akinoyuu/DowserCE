@@ -3,17 +3,26 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/Akinoyuu/DowserCE/pkg/launcher"
 	"github.com/caarlos0/log"
 )
 
-const version = "v1.0.1"
+const version = "v1.0.2"
 
 func main() {
 	log.Infof("DowserCE 版本: %s", version)
+	log.Infof("运行路径：%s\n", launcher.CWD)
 
+	err := launcher.CheckName(launcher.CWD)
+	if err != nil {
+		log.Error("路径中含有非ASCII字符, 会导致模组无法加载")
+		log.Error("即将启动游戏, 3秒后自动退出...")
+		launcher.RunDowser()
+		return
+	}
+
+	launcher.RenameInvalidModFolder(launcher.ModDir)
 	entries, err := os.ReadDir(launcher.ModDir)
 	if err != nil {
 		log.WithError(err).Fatal("获取Mod失败, 可能是因为权限不足")
@@ -47,10 +56,6 @@ func main() {
 		log.ResetPadding()
 	}
 
-	log.Info("即将启动游戏, 3秒后自动退出.. .")
-	if err := launcher.RunDowser(); err != nil {
-		log.WithError(err).Fatal("启动客户端失败, 可能是因为权限不足")
-	}
-
-	time.Sleep(3 * time.Second)
+	log.Info("即将启动游戏, 3秒后自动退出...")
+	launcher.RunDowser()
 }
